@@ -1,0 +1,6 @@
+Flask
+gunicorn
+rasterio
+numpy
+pystac-client
+matplotlib

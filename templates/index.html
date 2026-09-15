@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earth Observation POC - 10m Sentinel-2</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f7; color: #172033; }
+        header { background: #0d1729; color: white; padding: 32px 20px; text-align: center; }
+        header .logo { font-size: 42px; margin-bottom: 8px; }
+        header h1 { margin: 0; font-size: 32px; font-weight: 700; }
+        header p { margin: 10px 0 0; color: #b9c5d8; font-size: 16px; }
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+        .search-card { background: white; border-radius: 18px; padding: 30px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); }
+        .section-title { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .section-title span { font-size: 28px; }
+        .section-title h2 { margin: 0; font-size: 23px; }
+        .description { color: #667085; margin: 0 0 25px; line-height: 1.5; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .field label { display: block; font-weight: 600; margin-bottom: 8px; }
+        .field input { width: 100%; padding: 14px 16px; border: 1px solid #d0d5dd; border-radius: 10px; font-size: 16px; outline: none; transition: 0.2s; background: white; }
+        .field input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
+        .button-container { margin-top: 22px; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 10px; background: #0d1729; color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #1c2b45; }
+        button:active { transform: scale(0.99); }
+        .loading { display: none; text-align: center; padding: 20px; color: #667085; }
+        .spinner { width: 28px; height: 28px; border: 3px solid #dbe3ef; border-top: 3px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error { margin-top: 25px; padding: 16px; background: #fff1f0; border: 1px solid #ffccc7; border-radius: 10px; color: #b42318; }
+        .error strong { display: block; margin-bottom: 5px; }
+        .result-card { margin-top: 30px; background: white; border-radius: 18px; padding: 30px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); }
+        .result-header { margin-bottom: 20px; }
+        .result-header h2 { margin: 0 0 6px; font-size: 24px; }
+        .result-header p { margin: 0; color: #667085; }
+        .metadata { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .metadata-box { background: #f6f8fb; border-radius: 12px; padding: 15px; }
+        .metadata-box .label { font-size: 12px; color: #667085; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .metadata-box .value { font-size: 14px; font-weight: 600; word-break: break-word; }
+        .image-container { background: #111827; border-radius: 14px; padding: 12px; text-align: center; }
+        .image-container img { display: block; width: 100%; max-width: 800px; margin: auto; border-radius: 8px; }
+        .image-caption { color: #cbd5e1; font-size: 13px; margin-top: 10px; }
+        footer { text-align: center; padding: 30px 20px; color: #667085; font-size: 13px; }
+        @media (max-width: 700px) {
+            header h1 { font-size: 25px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .metadata { grid-template-columns: 1fr; }
+            .search-card, .result-card { padding: 20px; }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🌍</div>
+    <h1>Earth Observation POC</h1>
+    <p>Explore native 10m Sentinel-2 satellite imagery via AWS Open Data</p>
+</header>
+
+<main class="container">
+    <section class="search-card">
+        <div class="section-title">
+            <span>🛰️</span>
+            <h2>Find 10m Satellite Image</h2>
+        </div>
+        <p class="description">
+            Enter latitude and longitude coordinates to stream the latest low-cloud 10-meter Sentinel-2 image.
+        </p>
+
+        <form method="POST" onsubmit="showLoading()">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="latitude">Latitude</label>
+                    <input type="number" id="latitude" name="latitude" step="any" placeholder="e.g. 13.0827" value="{{ result.latitude if result else '' }}" required>
+                </div>
+
+                <div class="field">
+                    <label for="longitude">Longitude</label>
+                    <input type="number" id="longitude" name="longitude" step="any" placeholder="e.g. 80.2707" value="{{ result.longitude if result else '' }}" required>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button type="submit" id="searchButton">🔍 Find 10m Satellite Image</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>Streaming from AWS STAC Catalog...</div>
+                <small>Fetching 10m bands and processing image window</small>
+            </div>
+        </form>
+    </section>
+
+    {% if error %}
+    <div class="error">
+        <strong>Something went wrong</strong>
+        {{ error }}
+    </div>
+    {% endif %}
+
+    {% if result %}
+    <section class="result-card">
+        <div class="result-header">
+            <h2>🛰️ 10m Satellite Observation</h2>
+            <p>Successfully retrieved native resolution imagery for the requested location.</p>
+        </div>
+
+        <div class="metadata">
+            <div class="metadata-box">
+                <div class="label">Latitude</div>
+                <div class="value">{{ result.latitude }}</div>
+            </div>
+
+            <div class="metadata-box">
+                <div class="label">Longitude</div>
+                <div class="value">{{ result.longitude }}</div>
+            </div>
+
+            <div class="metadata-box">
+                <div class="label">Observation Date</div>
+                <div class="value">{{ result.observation }}</div>
+            </div>
+        </div>
+
+        <div class="metadata">
+            <div class="metadata-box">
+                <div class="label">Dataset</div>
+                <div class="value">Sentinel-2 L2A (AWS)</div>
+            </div>
+
+            <div class="metadata-box">
+                <div class="label">Resolution</div>
+                <div class="value">10 m</div>
+            </div>
+
+            <div class="metadata-box">
+                <div class="label">Granule ID</div>
+                <div class="value">{{ result.granule }}</div>
+            </div>
+        </div>
+
+        <div class="image-container">
+            <img src="{{ result.image }}" alt="Native 10m Sentinel-2 satellite image">
+            <div class="image-caption">
+                RGB composite • B04 Red • B03 Green • B02 Blue (10m Native Scale)
+            </div>
+        </div>
+    </section>
+    {% endif %}
+</main>
+
+<footer>
+    Earth Observation POC · Sentinel-2 L2A AWS STAC · 10 m native imagery
+</footer>
+
+<script>
+    function showLoading() {
+        document.getElementById("searchButton").style.display = "none";
+        document.getElementById("loading").style.display = "block";
+    }
+</script>
+
+</body>
+</html>
