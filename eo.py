@@ -6,6 +6,7 @@ from rasterio.warp import transform
 from rasterio.windows import Window
 from pystac_client import Client
 import matplotlib.pyplot as plt
+from PIL import Image, ImageFilter
 
 # Fast GDAL network streaming settings
 GDAL_ENV = {
@@ -42,7 +43,7 @@ def get_satellite_image(latitude, longitude):
 
     os.makedirs("static/outputs", exist_ok=True)
 
-    crop_size = 500
+    crop_size = 800
     half = crop_size // 2
 
     # Stream pixels directly over HTTPS
@@ -56,7 +57,13 @@ def get_satellite_image(latitude, longitude):
             col_start = max(0, col - half)
             col_end = min(src.width, col + half)
 
-            window = Window(col_start, row_start, col_end - col_start, row_end - row_start)
+            window = Window(
+                col_start,
+                row_start,
+                col_end - col_start,
+                row_end - row_start
+            )
+
             red = src.read(1, window=window)
 
         with rasterio.open(green_url) as src:
@@ -71,23 +78,48 @@ def get_satellite_image(latitude, longitude):
     rgb_display[rgb_display < 0] = 0
 
     valid = rgb_display[rgb_display > 0]
+
     if len(valid) == 0:
         raise Exception("No valid imagery pixels found in this crop window.")
 
     low, high = np.percentile(valid, (2, 98))
+
     if high <= low:
         raise Exception("Unable to enhance image: insufficient pixel contrast.")
 
-    rgb_display = np.clip((rgb_display - low) / (high - low), 0, 1)
+    rgb_display = np.clip(
+        (rgb_display - low) / (high - low),
+        0,
+        1
+    )
+
     rgb_display = np.power(rgb_display, 0.7)
+
+    # Convert normalized RGB data to 8-bit image
+    rgb_uint8 = (rgb_display * 255).astype(np.uint8)
+
+    # Create PIL image
+    image = Image.fromarray(rgb_uint8)
+
+    # Upscale 2x using Lanczos interpolation
+    image = image.resize(
+        (image.width * 2, image.height * 2),
+        Image.Resampling.LANCZOS
+    )
+
+    # Apply mild sharpening
+    image = image.filter(
+        ImageFilter.UnsharpMask(
+            radius=1.2,
+            percent=120,
+            threshold=3
+        )
+    )
 
     output_file = "static/outputs/sentinel_image.png"
 
-    plt.figure(figsize=(8, 8))
-    plt.imshow(rgb_display)
-    plt.axis("off")
-    plt.savefig(output_file, dpi=120, bbox_inches="tight")
-    plt.close()
+    # Save final image
+    image.save(output_file)
 
     return {
         "image": "/static/outputs/sentinel_image.png",
