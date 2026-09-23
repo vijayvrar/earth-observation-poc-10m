@@ -54,7 +54,7 @@ def create_rgb_image(
     # 800 x 10 m = approximately 8 km
     # --------------------------------------------------------
 
-    crop_size = 800
+    crop_size = 400
     half = crop_size // 2
 
 
