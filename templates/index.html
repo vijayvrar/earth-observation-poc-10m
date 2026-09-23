@@ -347,22 +347,15 @@
            perfectly aligned on desktop and mobile.
         */
 
-        .before-container .comparison-image {
-
-            position: absolute;
-
-            top: 0;
-
-            left: 0;
-
-            width: 200%;
-
-            height: 100%;
-
-            max-width: none;
-
-            object-fit: cover;
-        }
+.before-container .comparison-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+}
 
 
         /* ==================================================
@@ -941,63 +934,98 @@
 <script>
 
 const slider =
-    document.getElementById(
-        "comparisonSlider"
-    );
-
+    document.getElementById("comparisonSlider");
 
 const beforeContainer =
-    document.getElementById(
-        "beforeContainer"
-    );
+    document.getElementById("beforeContainer");
 
+const beforeImage =
+    beforeContainer
+        ? beforeContainer.querySelector(".comparison-image")
+        : null;
+
+const comparisonContainer =
+    document.querySelector(".comparison-container");
 
 const sliderLine =
-    document.getElementById(
-        "sliderLine"
-    );
+    document.getElementById("sliderLine");
 
 
-if (
-    slider &&
-    beforeContainer &&
-    sliderLine
-) {
+function resizeBeforeImage() {
 
-    function updateComparison() {
-
-        const value =
-            slider.value;
-
-
-        /*
-           Change the width of the 2018
-           clipping container.
-        */
-
-        beforeContainer.style.width =
-            value + "%";
-
-
-        /*
-           Move the comparison line.
-        */
-
-        sliderLine.style.left =
-            value + "%";
-
+    if (
+        !comparisonContainer ||
+        !beforeImage
+    ) {
+        return;
     }
 
+    const containerWidth =
+        comparisonContainer.clientWidth;
+
+    const containerHeight =
+        comparisonContainer.clientHeight;
+
+    /*
+       Keep the 2018 image exactly the
+       same physical size as the 2026 image.
+    */
+
+    beforeImage.style.width =
+        containerWidth + "px";
+
+    beforeImage.style.height =
+        containerHeight + "px";
+}
+
+
+function updateComparison() {
+
+    if (
+        !slider ||
+        !beforeContainer ||
+        !sliderLine
+    ) {
+        return;
+    }
+
+    const value =
+        slider.value;
+
+    /*
+       Only the clipping container changes.
+    */
+
+    beforeContainer.style.width =
+        value + "%";
+
+    sliderLine.style.left =
+        value + "%";
+
+    resizeBeforeImage();
+}
+
+
+if (slider) {
 
     slider.addEventListener(
         "input",
         updateComparison
     );
 
-
-    updateComparison();
-
 }
+
+
+window.addEventListener(
+    "resize",
+    resizeBeforeImage
+);
+
+
+resizeBeforeImage();
+
+updateComparison();
+
 
 </script>
 
