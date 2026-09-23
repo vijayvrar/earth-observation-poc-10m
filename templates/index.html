@@ -1,168 +1,901 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Earth Observation POC - 10m Sentinel-2</title>
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Sentinel-2 City Explorer
+    </title>
+
+
     <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #eef2f7; color: #172033; }
-        header { background: #0d1729; color: white; padding: 32px 20px; text-align: center; }
-        header .logo { font-size: 42px; margin-bottom: 8px; }
-        header h1 { margin: 0; font-size: 32px; font-weight: 700; }
-        header p { margin: 10px 0 0; color: #b9c5d8; font-size: 16px; }
-        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
-        .search-card { background: white; border-radius: 18px; padding: 30px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); }
-        .section-title { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-        .section-title span { font-size: 28px; }
-        .section-title h2 { margin: 0; font-size: 23px; }
-        .description { color: #667085; margin: 0 0 25px; line-height: 1.5; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .field label { display: block; font-weight: 600; margin-bottom: 8px; }
-        .field input { width: 100%; padding: 14px 16px; border: 1px solid #d0d5dd; border-radius: 10px; font-size: 16px; outline: none; transition: 0.2s; background: white; }
-        .field input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
-        .button-container { margin-top: 22px; }
-        button { width: 100%; padding: 15px; border: none; border-radius: 10px; background: #0d1729; color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #1c2b45; }
-        button:active { transform: scale(0.99); }
-        .loading { display: none; text-align: center; padding: 20px; color: #667085; }
-        .spinner { width: 28px; height: 28px; border: 3px solid #dbe3ef; border-top: 3px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .error { margin-top: 25px; padding: 16px; background: #fff1f0; border: 1px solid #ffccc7; border-radius: 10px; color: #b42318; }
-        .error strong { display: block; margin-bottom: 5px; }
-        .result-card { margin-top: 30px; background: white; border-radius: 18px; padding: 30px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); }
-        .result-header { margin-bottom: 20px; }
-        .result-header h2 { margin: 0 0 6px; font-size: 24px; }
-        .result-header p { margin: 0; color: #667085; }
-        .metadata { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-        .metadata-box { background: #f6f8fb; border-radius: 12px; padding: 15px; }
-        .metadata-box .label { font-size: 12px; color: #667085; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-        .metadata-box .value { font-size: 14px; font-weight: 600; word-break: break-word; }
-        .image-container { background: #111827; border-radius: 14px; padding: 12px; text-align: center; }
-        .image-container img { display: block; width: 100%; max-width: 800px; margin: auto; border-radius: 8px; }
-        .image-caption { color: #cbd5e1; font-size: 13px; margin-top: 10px; }
-        footer { text-align: center; padding: 30px 20px; color: #667085; font-size: 13px; }
-        @media (max-width: 700px) {
-            header h1 { font-size: 25px; }
-            .form-grid { grid-template-columns: 1fr; }
-            .metadata { grid-template-columns: 1fr; }
-            .search-card, .result-card { padding: 20px; }
+
+        * {
+            box-sizing: border-box;
         }
+
+
+        body {
+
+            margin: 0;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            background: #f4f6f8;
+
+            color: #222;
+        }
+
+
+        .container {
+
+            width: 92%;
+
+            max-width: 1100px;
+
+            margin: 40px auto;
+        }
+
+
+        h1 {
+
+            text-align: center;
+
+            margin-bottom: 10px;
+        }
+
+
+        .subtitle {
+
+            text-align: center;
+
+            color: #666;
+
+            margin-bottom: 30px;
+        }
+
+
+        /* ==================================================
+           SEARCH FORM
+        ================================================== */
+
+        .search-box {
+
+            background: white;
+
+            padding: 25px;
+
+            border-radius: 12px;
+
+            box-shadow:
+                0 2px 10px
+                rgba(0, 0, 0, 0.08);
+
+            margin-bottom: 30px;
+        }
+
+
+        .form-row {
+
+            display: flex;
+
+            gap: 15px;
+
+            flex-wrap: wrap;
+        }
+
+
+        .form-group {
+
+            flex: 1;
+
+            min-width: 220px;
+        }
+
+
+        label {
+
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-weight: bold;
+        }
+
+
+        input[type="number"] {
+
+            width: 100%;
+
+            padding: 12px;
+
+            font-size: 16px;
+
+            border:
+                1px solid #ccc;
+
+            border-radius: 6px;
+        }
+
+
+        button {
+
+            margin-top: 20px;
+
+            padding: 12px 24px;
+
+            font-size: 16px;
+
+            border: none;
+
+            border-radius: 6px;
+
+            background: #222;
+
+            color: white;
+
+            cursor: pointer;
+        }
+
+
+        button:hover {
+
+            opacity: 0.85;
+        }
+
+
+        /* ==================================================
+           ERROR
+        ================================================== */
+
+        .error {
+
+            background: #ffe5e5;
+
+            color: #b00020;
+
+            padding: 15px;
+
+            border-radius: 8px;
+
+            margin-bottom: 25px;
+        }
+
+
+        /* ==================================================
+           CURRENT IMAGE
+        ================================================== */
+
+        .section {
+
+            background: white;
+
+            padding: 25px;
+
+            border-radius: 12px;
+
+            box-shadow:
+                0 2px 10px
+                rgba(0, 0, 0, 0.08);
+
+            margin-bottom: 30px;
+        }
+
+
+        .section h2 {
+
+            margin-top: 0;
+        }
+
+
+        .satellite-image {
+
+            width: 100%;
+
+            max-width: 800px;
+
+            display: block;
+
+            margin: 20px auto;
+
+            border-radius: 8px;
+        }
+
+
+        /* ==================================================
+           DETAILS
+        ================================================== */
+
+        .details-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(200px, 1fr)
+                );
+
+            gap: 15px;
+
+            margin-top: 20px;
+        }
+
+
+        .detail-card {
+
+            background: #f5f5f5;
+
+            padding: 15px;
+
+            border-radius: 8px;
+        }
+
+
+        .detail-card strong {
+
+            display: block;
+
+            margin-bottom: 5px;
+        }
+
+
+        /* ==================================================
+           HISTORICAL SECTION
+        ================================================== */
+
+        .historical-intro {
+
+            color: #666;
+
+            line-height: 1.6;
+        }
+
+
+        /* ==================================================
+           BEFORE / AFTER VIEWER
+        ================================================== */
+
+        .comparison-container {
+
+            position: relative;
+
+            width: 100%;
+
+            max-width: 800px;
+
+            margin: 25px auto;
+
+            overflow: hidden;
+
+            aspect-ratio: 1 / 1;
+
+            background: #111;
+
+            border-radius: 8px;
+        }
+
+
+        .comparison-image {
+
+            position: absolute;
+
+            top: 0;
+
+            left: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            object-fit: cover;
+
+            display: block;
+        }
+
+
+        /* 2026 background */
+
+        .after-image {
+
+            z-index: 1;
+        }
+
+
+        /* 2018 image container */
+
+        .before-container {
+
+            position: absolute;
+
+            top: 0;
+
+            left: 0;
+
+            width: 50%;
+
+            height: 100%;
+
+            overflow: hidden;
+
+            z-index: 2;
+        }
+
+
+        .before-container
+        .comparison-image {
+
+            /*
+             * Keep the 2018 image the same
+             * physical size as the 2026 image.
+             */
+
+            width: 800px;
+
+            max-width: none;
+
+            height: 800px;
+        }
+
+
+        /* ==================================================
+           SLIDER LINE
+        ================================================== */
+
+        .slider-line {
+
+            position: absolute;
+
+            top: 0;
+
+            bottom: 0;
+
+            left: 50%;
+
+            width: 3px;
+
+            background: white;
+
+            z-index: 4;
+
+            pointer-events: none;
+
+            box-shadow:
+                0 0 5px
+                rgba(0, 0, 0, 0.5);
+        }
+
+
+        /* ==================================================
+           SLIDER CONTROL
+        ================================================== */
+
+        .comparison-slider {
+
+            position: absolute;
+
+            top: 0;
+
+            left: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            margin: 0;
+
+            opacity: 0;
+
+            cursor: ew-resize;
+
+            z-index: 5;
+        }
+
+
+        /* ==================================================
+           YEAR LABELS
+        ================================================== */
+
+        .year-label {
+
+            position: absolute;
+
+            top: 15px;
+
+            padding:
+                8px 14px;
+
+            background:
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.7
+                );
+
+            color: white;
+
+            font-weight: bold;
+
+            border-radius: 5px;
+
+            z-index: 6;
+        }
+
+
+        .before-label {
+
+            left: 15px;
+        }
+
+
+        .after-label {
+
+            right: 15px;
+        }
+
+
+        /* ==================================================
+           HISTORICAL DETAILS
+        ================================================== */
+
+        .comparison-details {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    2,
+                    1fr
+                );
+
+            gap: 20px;
+
+            margin-top: 25px;
+        }
+
+
+        .comparison-card {
+
+            padding: 20px;
+
+            background: #f5f5f5;
+
+            border-radius: 8px;
+        }
+
+
+        .comparison-card h3 {
+
+            margin-top: 0;
+        }
+
+
+        .comparison-note {
+
+            margin-top: 25px;
+
+            padding: 15px;
+
+            background: #f8f8f8;
+
+            border-left:
+                4px solid #555;
+
+            line-height: 1.6;
+
+            color: #555;
+        }
+
+
+        /* ==================================================
+           MOBILE
+        ================================================== */
+
+        @media (max-width: 700px) {
+
+            .comparison-details {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .container {
+
+                width: 95%;
+            }
+
+        }
+
     </style>
+
 </head>
+
 
 <body>
 
-<header>
-    <div class="logo">🌍</div>
-    <h1>Earth Observation POC</h1>
-    <p>Explore native 10m Sentinel-2 satellite imagery via AWS Open Data</p>
-</header>
 
-<main class="container">
-    <section class="search-card">
-        <div class="section-title">
-            <span>🛰️</span>
-            <h2>Find 10m Satellite Image</h2>
-        </div>
-        <p class="description">
-            Enter latitude and longitude coordinates to stream the latest low-cloud 10-meter Sentinel-2 image.
-        </p>
+<div class="container">
 
-        <form method="POST" onsubmit="showLoading()">
-            <div class="form-grid">
-                <div class="field">
-                    <label for="latitude">Latitude</label>
-                    <input type="number" id="latitude" name="latitude" step="any" placeholder="e.g. 13.0827" value="{{ result.latitude if result else '' }}" required>
+
+    <!-- ==================================================
+         PAGE TITLE
+    ================================================== -->
+
+    <h1>
+        Sentinel-2 City Explorer
+    </h1>
+
+
+    <p class="subtitle">
+        Explore 10 m satellite imagery
+        and historical change
+    </p>
+
+
+    <!-- ==================================================
+         COORDINATE FORM
+    ================================================== -->
+
+    <div class="search-box">
+
+        <form method="POST">
+
+            <div class="form-row">
+
+
+                <div class="form-group">
+
+                    <label for="latitude">
+                        Latitude
+                    </label>
+
+                    <input
+                        type="number"
+                        step="any"
+                        id="latitude"
+                        name="latitude"
+                        value="13.0827"
+                        required
+                    >
+
                 </div>
 
-                <div class="field">
-                    <label for="longitude">Longitude</label>
-                    <input type="number" id="longitude" name="longitude" step="any" placeholder="e.g. 80.2707" value="{{ result.longitude if result else '' }}" required>
+
+                <div class="form-group">
+
+                    <label for="longitude">
+                        Longitude
+                    </label>
+
+                    <input
+                        type="number"
+                        step="any"
+                        id="longitude"
+                        name="longitude"
+                        value="80.2707"
+                        required
+                    >
+
                 </div>
+
+
             </div>
 
-            <div class="button-container">
-                <button type="submit" id="searchButton">🔍 Find 10m Satellite Image</button>
-            </div>
 
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <div>Streaming from AWS STAC Catalog...</div>
-                <small>Fetching 10m bands and processing image window</small>
-            </div>
+            <button type="submit">
+                Explore Satellite Image
+            </button>
+
         </form>
-    </section>
+
+    </div>
+
+
+    <!-- ==================================================
+         ERROR
+    ================================================== -->
 
     {% if error %}
+
     <div class="error">
-        <strong>Something went wrong</strong>
+
+        <strong>
+            Error:
+        </strong>
+
         {{ error }}
+
     </div>
+
     {% endif %}
+
+
+    <!-- ==================================================
+         CURRENT SATELLITE IMAGE
+    ================================================== -->
 
     {% if result %}
-    <section class="result-card">
-        <div class="result-header">
-            <h2>🛰️ 10m Satellite Observation</h2>
-            <p>Successfully retrieved native resolution imagery for the requested location.</p>
+
+    <div class="section">
+
+        <h2>
+            Current Satellite Image
+        </h2>
+
+
+        <img
+            src="{{ result.image }}"
+            alt="Sentinel-2 satellite imagery"
+            class="satellite-image"
+        >
+
+
+        <div class="details-grid">
+
+
+            <div class="detail-card">
+
+                <strong>
+                    Latitude
+                </strong>
+
+                {{ result.latitude }}
+
+            </div>
+
+
+            <div class="detail-card">
+
+                <strong>
+                    Longitude
+                </strong>
+
+                {{ result.longitude }}
+
+            </div>
+
+
+            <div class="detail-card">
+
+                <strong>
+                    Observation
+                </strong>
+
+                {{ result.observation }}
+
+            </div>
+
+
+            <div class="detail-card">
+
+                <strong>
+                    Cloud Cover
+                </strong>
+
+                {{ result.cloud_cover }}%
+
+            </div>
+
+
+            <div class="detail-card">
+
+                <strong>
+                    Sentinel-2 Granule
+                </strong>
+
+                {{ result.granule }}
+
+            </div>
+
+
         </div>
 
-        <div class="metadata">
-            <div class="metadata-box">
-                <div class="label">Latitude</div>
-                <div class="value">{{ result.latitude }}</div>
-            </div>
+    </div>
 
-            <div class="metadata-box">
-                <div class="label">Longitude</div>
-                <div class="value">{{ result.longitude }}</div>
-            </div>
-
-            <div class="metadata-box">
-                <div class="label">Observation Date</div>
-                <div class="value">{{ result.observation }}</div>
-            </div>
-        </div>
-
-        <div class="metadata">
-            <div class="metadata-box">
-                <div class="label">Dataset</div>
-                <div class="value">Sentinel-2 L2A (AWS)</div>
-            </div>
-
-            <div class="metadata-box">
-                <div class="label">Resolution</div>
-                <div class="value">10 m</div>
-            </div>
-
-            <div class="metadata-box">
-                <div class="label">Granule ID</div>
-                <div class="value">{{ result.granule }}</div>
-            </div>
-        </div>
-
-        <div class="image-container">
-            <img src="{{ result.image }}" alt="Native 10m Sentinel-2 satellite image">
-            <div class="image-caption">
-                RGB composite • B04 Red • B03 Green • B02 Blue (10m Native Scale)
-            </div>
-        </div>
-    </section>
     {% endif %}
-</main>
 
-<footer>
-    Earth Observation POC · Sentinel-2 L2A AWS STAC · 10 m native imagery
-</footer>
+
+    <!-- ==================================================
+         HISTORICAL COMPARISON
+    ================================================== -->
+
+    {% if result %}
+
+<section class="section">
+
+    <h2>
+        How Has This Area Changed?
+    </h2>
+
+    <p class="historical-intro">
+        Compare Sentinel-2 imagery of the same area
+        between 2018 and 2026.
+    </p>
+
+    <div class="comparison-container">
+
+        <!-- 2026 IMAGE -->
+
+        <img
+            src="{{ url_for('static', filename='outputs/sentinel_2026.png') }}"
+            class="comparison-image after-image"
+            alt="Sentinel-2 2026"
+        >
+
+
+        <!-- 2018 IMAGE -->
+
+        <div
+            class="before-container"
+            id="beforeContainer"
+        >
+
+            <img
+                src="{{ url_for('static', filename='outputs/sentinel_2018.png') }}"
+                class="comparison-image"
+                alt="Sentinel-2 2018"
+            >
+
+        </div>
+
+
+        <div class="year-label before-label">
+            2018
+        </div>
+
+        <div class="year-label after-label">
+            2026
+        </div>
+
+
+        <div
+            class="slider-line"
+            id="sliderLine"
+        ></div>
+
+
+        <input
+            type="range"
+            min="0"
+            max="100"
+            value="50"
+            id="comparisonSlider"
+            class="comparison-slider"
+        >
+
+    </div>
+
+
+    <div class="comparison-details">
+
+        <div class="comparison-card">
+
+            <h3>2018</h3>
+
+            <p>
+                Sentinel-2B
+            </p>
+
+            <p>
+                02 March 2018
+            </p>
+
+            <p>
+                Cloud cover: 0.065667%
+            </p>
+
+        </div>
+
+
+        <div class="comparison-card">
+
+            <h3>2026</h3>
+
+            <p>
+                Sentinel-2C
+            </p>
+
+            <p>
+                05 March 2026
+            </p>
+
+            <p>
+                Cloud cover: 0.008766%
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="comparison-note">
+
+        <strong>
+            8-Year Satellite Comparison
+        </strong>
+
+        <br><br>
+
+        Both images cover the same geographic area
+        using Sentinel-2 imagery at 10 m resolution.
+
+        Drag the slider to compare the area between
+        2018 and 2026.
+
+    </div>
+
+</section>
+
+    {% endif %}
+
+
+</div>
+
+
+<!-- ======================================================
+     SLIDER JAVASCRIPT
+====================================================== -->
 
 <script>
-    function showLoading() {
-        document.getElementById("searchButton").style.display = "none";
-        document.getElementById("loading").style.display = "block";
+
+const slider =
+    document.getElementById(
+        "comparisonSlider"
+    );
+
+const beforeContainer =
+    document.getElementById(
+        "beforeContainer"
+    );
+
+const sliderLine =
+    document.getElementById(
+        "sliderLine"
+    );
+
+
+if (
+    slider &&
+    beforeContainer &&
+    sliderLine
+) {
+
+    function updateComparison() {
+
+        const value =
+            slider.value;
+
+        beforeContainer.style.width =
+            value + "%";
+
+        sliderLine.style.left =
+            value + "%";
     }
+
+
+    slider.addEventListener(
+        "input",
+        updateComparison
+    );
+
+
+    updateComparison();
+}
+
 </script>
 
+
 </body>
+
 </html>
