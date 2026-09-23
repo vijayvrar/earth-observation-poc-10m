@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
@@ -173,7 +172,7 @@
 
 
         /* ==================================================
-           CURRENT IMAGE
+           SECTIONS
         ================================================== */
 
         .section {
@@ -197,6 +196,10 @@
             margin-top: 0;
         }
 
+
+        /* ==================================================
+           CURRENT IMAGE
+        ================================================== */
 
         .satellite-image {
 
@@ -286,6 +289,8 @@
         }
 
 
+        /* Both images occupy the exact same canvas */
+
         .comparison-image {
 
             position: absolute;
@@ -312,7 +317,7 @@
         }
 
 
-        /* 2018 image container */
+        /* 2018 clipping container */
 
         .before-container {
 
@@ -332,11 +337,32 @@
         }
 
 
-.before-container .comparison-image {
-    width: 200%;
-    max-width: none;
-    height: 100%;
-}
+        /*
+           IMPORTANT:
+
+           The before image is twice the width of
+           its 50% clipping container.
+
+           This keeps the 2018 and 2026 images
+           perfectly aligned on desktop and mobile.
+        */
+
+        .before-container .comparison-image {
+
+            position: absolute;
+
+            top: 0;
+
+            left: 0;
+
+            width: 200%;
+
+            height: 100%;
+
+            max-width: none;
+
+            object-fit: cover;
+        }
 
 
         /* ==================================================
@@ -495,55 +521,63 @@
 
         @media (max-width: 700px) {
 
+            .container {
+
+                width: 95%;
+
+                margin-top: 20px;
+            }
+
+
+            .section {
+
+                padding: 18px;
+            }
+
+
             .comparison-details {
 
                 grid-template-columns: 1fr;
             }
 
 
-            .container {
+            .comparison-container {
 
-                width: 95%;
+                width: 100%;
+
+                max-width: 100%;
+
+                /*
+                   Keep square aspect ratio on mobile.
+                */
+
+                aspect-ratio: 1 / 1;
             }
 
+
+            .year-label {
+
+                top: 10px;
+
+                padding:
+                    6px 10px;
+
+                font-size: 14px;
+            }
+
+
+            .before-label {
+
+                left: 10px;
+            }
+
+
+            .after-label {
+
+                right: 10px;
+            }
         }
-.comparison-container {
-    position: relative;
-    width: 100%;
-    max-width: 800px;
-    margin: 25px auto;
-    overflow: hidden;
-    aspect-ratio: 1 / 1;
-    background: #111;
-    border-radius: 8px;
-}
 
-.comparison-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.before-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-    overflow: hidden;
-    z-index: 2;
-}
-
-.before-container .comparison-image {
-    width: 200%;
-    max-width: none;
-    height: 100%;
-}
-}
     </style>
 
 </head>
@@ -739,130 +773,160 @@
 
     {% if result %}
 
-<section class="section">
+    <section class="section">
 
-    <h2>
-        How Has This Area Changed?
-    </h2>
-
-    <p class="historical-intro">
-        Compare Sentinel-2 imagery of the same area
-        between 2018 and 2026.
-    </p>
-
-    <div class="comparison-container">
-
-        <!-- 2026 IMAGE -->
-
-        <img
-            src="{{ url_for('static', filename='outputs/sentinel_2026.png') }}"
-            class="comparison-image after-image"
-            alt="Sentinel-2 2026"
-        >
+        <h2>
+            How Has This Area Changed?
+        </h2>
 
 
-        <!-- 2018 IMAGE -->
+        <p class="historical-intro">
 
-        <div
-            class="before-container"
-            id="beforeContainer"
-        >
+            Compare Sentinel-2 imagery of the same area
+            between 2018 and 2026.
+
+        </p>
+
+
+        <div class="comparison-container">
+
+
+            <!-- 2026 IMAGE -->
 
             <img
-                src="{{ url_for('static', filename='outputs/sentinel_2018.png') }}"
-                class="comparison-image"
-                alt="Sentinel-2 2018"
+                src="{{ url_for(
+                    'static',
+                    filename='outputs/sentinel_2026.png'
+                ) }}"
+                class="comparison-image after-image"
+                alt="Sentinel-2 2026"
+            >
+
+
+            <!-- 2018 IMAGE -->
+
+            <div
+                class="before-container"
+                id="beforeContainer"
+            >
+
+                <img
+                    src="{{ url_for(
+                        'static',
+                        filename='outputs/sentinel_2018.png'
+                    ) }}"
+                    class="comparison-image"
+                    alt="Sentinel-2 2018"
+                >
+
+            </div>
+
+
+            <!-- YEAR LABELS -->
+
+            <div class="year-label before-label">
+                2018
+            </div>
+
+
+            <div class="year-label after-label">
+                2026
+            </div>
+
+
+            <!-- SLIDER LINE -->
+
+            <div
+                class="slider-line"
+                id="sliderLine"
+            ></div>
+
+
+            <!-- SLIDER -->
+
+            <input
+                type="range"
+                min="0"
+                max="100"
+                value="50"
+                id="comparisonSlider"
+                class="comparison-slider"
+                aria-label="Compare 2018 and 2026 satellite imagery"
             >
 
         </div>
 
 
-        <div class="year-label before-label">
-            2018
-        </div>
+        <!-- HISTORICAL DETAILS -->
 
-        <div class="year-label after-label">
-            2026
-        </div>
+        <div class="comparison-details">
 
 
-        <div
-            class="slider-line"
-            id="sliderLine"
-        ></div>
+            <div class="comparison-card">
+
+                <h3>
+                    2018
+                </h3>
+
+                <p>
+                    Sentinel-2B
+                </p>
+
+                <p>
+                    02 March 2018
+                </p>
+
+                <p>
+                    Cloud cover: 0.065667%
+                </p>
+
+            </div>
 
 
-        <input
-            type="range"
-            min="0"
-            max="100"
-            value="50"
-            id="comparisonSlider"
-            class="comparison-slider"
-        >
+            <div class="comparison-card">
 
-    </div>
+                <h3>
+                    2026
+                </h3>
 
+                <p>
+                    Sentinel-2C
+                </p>
 
-    <div class="comparison-details">
+                <p>
+                    05 March 2026
+                </p>
 
-        <div class="comparison-card">
+                <p>
+                    Cloud cover: 0.008766%
+                </p>
 
-            <h3>2018</h3>
+            </div>
 
-            <p>
-                Sentinel-2B
-            </p>
-
-            <p>
-                02 March 2018
-            </p>
-
-            <p>
-                Cloud cover: 0.065667%
-            </p>
-
-        </div>
-
-
-        <div class="comparison-card">
-
-            <h3>2026</h3>
-
-            <p>
-                Sentinel-2C
-            </p>
-
-            <p>
-                05 March 2026
-            </p>
-
-            <p>
-                Cloud cover: 0.008766%
-            </p>
 
         </div>
 
-    </div>
+
+        <!-- NOTE -->
+
+        <div class="comparison-note">
+
+            <strong>
+                8-Year Satellite Comparison
+            </strong>
+
+            <br><br>
+
+            Both images cover the same geographic area
+            using Sentinel-2 imagery at 10 m resolution.
+
+            Drag the slider to compare the area between
+            2018 and 2026.
+
+        </div>
 
 
-    <div class="comparison-note">
-
-        <strong>
-            8-Year Satellite Comparison
-        </strong>
-
-        <br><br>
-
-        Both images cover the same geographic area
-        using Sentinel-2 imagery at 10 m resolution.
-
-        Drag the slider to compare the area between
-        2018 and 2026.
-
-    </div>
-
-</section>
+    </section>
 
     {% endif %}
 
@@ -881,10 +945,12 @@ const slider =
         "comparisonSlider"
     );
 
+
 const beforeContainer =
     document.getElementById(
         "beforeContainer"
     );
+
 
 const sliderLine =
     document.getElementById(
@@ -903,11 +969,23 @@ if (
         const value =
             slider.value;
 
+
+        /*
+           Change the width of the 2018
+           clipping container.
+        */
+
         beforeContainer.style.width =
             value + "%";
 
+
+        /*
+           Move the comparison line.
+        */
+
         sliderLine.style.left =
             value + "%";
+
     }
 
 
@@ -918,6 +996,7 @@ if (
 
 
     updateComparison();
+
 }
 
 </script>
